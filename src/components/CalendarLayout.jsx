@@ -6,7 +6,7 @@ import { NavLink, Outlet } from 'react-router-dom';
 const CalendarLayout = () => {
   return (
     // Responsive flex container for sidebar and main content
-    <div className="flex flex-col md:flex-row min-h-screen bg-gray-50 text-gray-800">
+    <div className="fixed inset-0 flex flex-col md:flex-row min-h-screen bg-gray-50 text-gray-800">
       
       {/* sidebar with navigation and logout */}
       <aside className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-gray-200 p-4 flex flex-row md:flex-col justify-between md:justify-start items-center md:items-start">

@@ -2,18 +2,7 @@
  import reactLogo from './assets/react.svg'
  import viteLogo from '/vite.svg'
 import './App.css'
-// import Calendar from './components/Calendar';
-// import CalendarLayout from './components/CalendarLayout';
 
-// function App() {
-//   return (
-//     <CalendarLayout>
-//       <Calendar />
-//     </CalendarLayout>
-//   );
-// }
-
-// export default App;
 
 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
