@@ -39,6 +39,15 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
   const [username, setUsername] = useState(localStorage.getItem('username') || '');
 
+  const handleLogout = () => {
+    setToken('');
+    setUsername('');
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    // Optionally, you can force a reload or redirect:
+    // window.location.reload();
+  };
+
   if (!token) {
     return <Auth setToken={setToken} setUsername={setUsername} />;
   }
@@ -46,7 +55,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<CalendarLayout />}>
+        <Route path="/" element={<CalendarLayout handleLogout={handleLogout} />}>
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="calendar" element={<Calendar token={token} />} />
           <Route path="tasks" element={<Tasks token={token} />} />

@@ -3,7 +3,7 @@ import { Calendar as CalendarIcon, Home, List, LogOut } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router-dom';
 
 
-const CalendarLayout = () => {
+const CalendarLayout = ({ handleLogout }) => {
   return (
     // Responsive flex container for sidebar and main content
     <div className="fixed inset-0 flex flex-col md:flex-row min-h-screen bg-gray-50 text-gray-800">
@@ -29,7 +29,10 @@ const CalendarLayout = () => {
 
         {/*static logout button */}
         <div className="mt-0 md:mt-auto">
-          <button className="flex items-center gap-2 p-2 text-white bg-red-500 hover:bg-red-600 rounded w-full transition">
+          <button
+            className="flex items-center gap-2 p-2 text-white bg-red-500 hover:bg-red-600 rounded w-full transition"
+            onClick={handleLogout}
+          >
             <LogOut className="w-5 h-5" /> <span className="hidden md:inline">Logout</span>
           </button>
         </div>
