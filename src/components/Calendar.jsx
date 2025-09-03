@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, X, Edit2, Trash2, Plus, Clock, MapPin, Users } from 'lucide-react'; //for icons 
-import { useEffect } from 'react'; //for fetching events 
+import { fetchTasks, createTask, updateTask, deleteTask } from '../api';
 
-const Calendar = () => {  // controls the calendar component
+const Calendar = ({ token }) => {  // controls the calendar component
   const [currentDate, setCurrentDate] = useState(new Date()); //controls visible month
   const [reminders, setReminders] = useState([]);  //events in the calendar
   const [showModal, setShowModal] = useState(false);  //event creation popup
@@ -111,32 +111,83 @@ const Calendar = () => {  // controls the calendar component
     setEditingReminder(null);
   };
 
-  const handleSubmit = () => {
+  // Fetch tasks for the logged-in user
+  useEffect(() => {
+    if (!token) return;
+    fetchTasks(token)
+      .then((data) => {
+        const parsed = data.map((ev) => ({
+          ...ev,
+          date: new Date(ev.date),
+          category: ev.category || 'personal',
+          time: ev.time || '',
+          title: ev.title || 'Untitled Event',
+        }));
+        setReminders(parsed);
+      })
+      .catch((err) => {
+        console.error('Error loading tasks:', err);
+        setReminders([]);
+      });
+  }, [token]);
+
+  // Create or update a task
+  const handleSubmit = async () => {
     if (!formData.title.trim() || !formData.date || !formData.time) {
       alert('Please fill in all required fields (Title, Date, and Time)');
       return;
     }
-
     const event = {
-      id: editingReminder ? editingReminder.id : Date.now(),
       title: formData.title.trim(),
-      date: new Date(formData.date),
+      date: formData.date,
       time: formData.time,
       description: formData.description,
       category: formData.category,
       priority: formData.priority,
       location: formData.location,
     };
-    
-    setReminders((prev) => {
-      return editingReminder
-        ? prev.map((r) => (r.id === editingReminder.id ? event : r))
-        : [...prev, event];
-    });
-    
-    setShowModal(false);
-    setFormData({ title: '', date: '', time: '', description: '', category: 'personal', priority: 'medium', location: '' });
-    setEditingReminder(null);
+    try {
+      if (editingReminder) {
+        await updateTask(editingReminder._id || editingReminder.id, event, token);
+      } else {
+        await createTask(event, token);
+      }
+      // Refresh tasks
+      fetchTasks(token).then((data) => {
+        const parsed = data.map((ev) => ({
+          ...ev,
+          date: new Date(ev.date),
+          category: ev.category || 'personal',
+          time: ev.time || '',
+          title: ev.title || 'Untitled Event',
+        }));
+        setReminders(parsed);
+      });
+      setShowModal(false);
+      setFormData({ title: '', date: '', time: '', description: '', category: 'personal', priority: 'medium', location: '' });
+      setEditingReminder(null);
+    } catch (err) {
+      alert('Error saving event');
+    }
+  };
+
+  // Delete a task
+  const handleDelete = async (id) => {
+    try {
+      await deleteTask(id, token);
+      fetchTasks(token).then((data) => {
+        const parsed = data.map((ev) => ({
+          ...ev,
+          date: new Date(ev.date),
+          category: ev.category || 'personal',
+          time: ev.time || '',
+          title: ev.title || 'Untitled Event',
+        }));
+        setReminders(parsed);
+      });
+    } catch (err) {
+      alert('Error deleting event');
+    }
   };
 
   const goToToday = () => {
@@ -158,31 +209,6 @@ const Calendar = () => {  // controls the calendar component
   }
   return false;
 };
-
-// load event data from a local JSON file
-useEffect(() => {
-  fetch('/events.json')
-    .then((res) => {
-      if (!res.ok) throw new Error('Failed to load events.json');
-      return res.json();
-    })
-    .then((data) => {
-      const parsed = data.map((ev) => ({
-        ...ev,
-        date: new Date(ev.date),
-        category: ev.category || 'personal', // fallback
-        time: ev.time || '',
-        title: ev.title || 'Untitled Event',
-      }));
-      setReminders(parsed);
-    })
-    .catch((err) => {
-      console.error('Error loading events.json:', err);
-      setReminders([]); // fallback to avoid crashes
-    });
-}, []);
-
-
 
   return (
 
@@ -366,7 +392,7 @@ useEffect(() => {
                         <Edit2 className="w-4 h-4 text-white" />
                       </button>
                       <button
-                        onClick={() => setReminders(prev => prev.filter(x => x.id !== reminder.id))}
+                        onClick={() => handleDelete(reminder._id || reminder.id)}
                         className="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition"
                       >
                         <Trash2 className="w-4 h-4 text-white" />
